@@ -1,0 +1,42 @@
+name: Run MyApp
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 * * * *'  # اجرای کد هر ساعت
+
+jobs:
+  run-myapp:
+    runs-on: ubuntu-latest
+
+    env:
+      EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+      EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      HTTP_PROXY: http://178.48.68.61:18080
+      HTTPS_PROXY: http://178.48.68.61:18080
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3  # به‌روزرسانی به v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4  # به‌روزرسانی به v4
+      with:
+        python-version: '3.8'
+
+    - name: Configure proxy
+      run: |
+        echo "Acquire::http::Proxy \"$HTTP_PROXY\";" | sudo tee /etc/apt/apt.conf.d/proxy.conf
+        echo "Acquire::https::Proxy \"$HTTPS_PROXY\";" | sudo tee -a /etc/apt/apt.conf.d/proxy.conf
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ccxt pandas mplfinance numpy
+
+    - name: Run MyApp
+      run: |
+        python main.py
