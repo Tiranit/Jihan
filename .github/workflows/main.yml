@@ -1,43 +1,31 @@
-name: Run MyApp
+name: Proxy Checker
 
 on:
-  push:
-    branches:
-      - main
   schedule:
-    - cron: '0 * * * *'  # اجرای کد هر ساعت
+    - cron: '0 * * * *'  # اجرای هر یک ساعت (0 دقیقه از هر ساعت)
 
 jobs:
-  run-myapp:
+  run-proxy-checker:
     runs-on: ubuntu-latest
 
-    env:
-      EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-      EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
-      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-      HTTP_PROXY: http://178.48.68.61:18080
-      HTTPS_PROXY: http://178.48.68.61:18080
-      NODE_VERSION: 20  # تنظیم نسخه‌ی Node.js به 20
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3  # به‌روزرسانی به v3
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
     - name: Set up Python
-      uses: actions/setup-python@v4  # به‌روزرسانی به v4
+      uses: actions/setup-python@v2
       with:
-        python-version: '3.8'
-
-    - name: Configure proxy
-      run: |
-        echo "Acquire::http::Proxy \"$HTTP_PROXY\";" | sudo tee /etc/apt/apt.conf.d/proxy.conf
-        echo "Acquire::https::Proxy \"$HTTPS_PROXY\";" | sudo tee -a /etc/apt/apt.conf.d/proxy.conf
+        python-version: '3.x'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install ccxt pandas mplfinance numpy
+        pip install requests
 
-    - name: Run MyApp
+    - name: Run proxy checker
+      env:
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}  # ایمیل فرستنده
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}  # رمز عبور ایمیل فرستنده
+        EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}  # ایمیل گیرنده
       run: |
-        python main.py
+        python main.py  # اجرای اسکریپت اصلی با نام main.py
